@@ -1,35 +1,28 @@
-import ast,requests
+import requests,os
+from config import *
+from dotenv import load_dotenv
+load_dotenv()
 
-groupid='ENTER GROUP ID HERE'
-token = 'ENTER YOUR TOKEN HERE'
-txt = open('id.txt', 'w')
-params = {'group_id':groupid,'v':'5.131','access_token': token}
-url = 'https://api.vk.com/method/groups.getMembers'
-merged_list =[]
-HEADERS={
-    'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
-    'user-agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.67 Safari/537.36'
-}
-def get_html(url,params=''):
-    res = requests.get(url,headers=HEADERS,params=params)
-    finalb = res.content
-    return finalb
 
-def bytes_to_dict(bytes):
-    mydata = ast.literal_eval(bytes.decode("UTF-8"))
-    return mydata
+groupid='mwt_mlp'
+token = os.getenv('token')
+params = {'group_id':groupid,'fields':'contacts,bdate,country','v':'5.131','access_token': token}
 
-counter = bytes_to_dict(get_html(url,params))['response']['count']//1000 + 1
+def get_groupinfo():
+    description = requests.get('https://api.vk.com/method/groups.getById',headers=HEADERS,params={'group_id': groupid,'fields':'description','access_token': token,'v':'5.131'}).json()
+    return description
 
-for o in range(0, counter+1):
-    txt = open('id.txt', 'w')
-    allusers =  get_html(url,params={'group_id':groupid,'offset': o*1000,'v':'5.131','access_token': token})
-    rdict = bytes_to_dict(allusers)
-    ids = rdict['response']['items']
-    merged_list.extend(ids)
-    
-    for item in merged_list:
-        txt.write('vk.com/id'+ str(item)+ '\n')
+AllGroupinfo = get_groupinfo()['response'][0]
+GroupDescription = [AllGroupinfo['id'],AllGroupinfo['description'],AllGroupinfo['name']] #Cписок id,описание,название группы
 
-  
+def get_html(url,params):
+    content = requests.get(url,headers=HEADERS,params=params)
+    return content.json()
 
+User_counter= get_html(url,params)['response']['count']//1000 + 1
+
+for o in range(0, User_counter+1):
+    AllUser_data =  get_html(url,params={'group_id':groupid,'offset': o*1000,'fields':'contacts,bdate,country','v':'5.131','access_token': token})['response']['items']
+    for user in AllUser_data:
+        response_list = [user['id'],user['first_name'],user['last_name']]
+        print(response_list)
