@@ -4,4 +4,7 @@ HEADERS={
 }
 
 url = 'https://api.vk.com/method/groups.getMembers'
+getbyid_url = 'https://api.vk.com/method/users.get'
+
+fieldds = 'contacts,sex,activities,can_be_invited_group,about,books,bdate,schools,career,followers_count,verified'
 
